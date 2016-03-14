@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "outDir": "dist/cjs"
+        "declaration": true
     },
     "exclude": [
         "node_modules",

@@ -8,8 +8,8 @@
         "build:package": "npm run webpack",
         "webpack": "webpack --display-modules",
         "test": "npm run build && npm run mocha",
-        "mocha": "mocha dist/cjs/test",
-        "mocha:w": "mocha -w dist/cjs/test",
+        "mocha": "mocha test",
+        "mocha:w": "mocha -w test",
         "test:w": "concurrent \"npm run build:w\" \"npm run mocha:w\"",
         "prepublish": "npm run build:package"
     },

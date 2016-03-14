@@ -2,8 +2,8 @@ var webpack = require('webpack');
 
 module.exports = {
     entry: {
-        'rxui.umd': './dist/cjs/src/main',
-        'rxui.umd.min': './dist/cjs/src/main'
+        'rxui.umd': './src/main',
+        'rxui.umd.min': './src/main'
     },
     output: {
         filename: '[name].js',

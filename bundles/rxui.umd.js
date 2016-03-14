@@ -1,13 +1,13 @@
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory(require(undefined), require("rxjs/Observable"));
+		module.exports = factory(require(undefined), require("rxjs/Observable"), require("rxjs/Subject"));
 	else if(typeof define === 'function' && define.amd)
-		define(["rxjs/Rx", "rxjs/Observable"], factory);
+		define(["rxjs/Rx", "rxjs/Observable", "rxjs/Subject"], factory);
 	else if(typeof exports === 'object')
-		exports["RxUI"] = factory(require("rxjs/Rx"), require("rxjs/Observable"));
+		exports["RxUI"] = factory(require("rxjs/Rx"), require("rxjs/Observable"), require("rxjs/Subject"));
 	else
-		root["RxUI"] = factory(root["Rx"], root["rxjs/Observable"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_6__) {
+		root["RxUI"] = factory(root["Rx"], root["rxjs/Observable"], root["rxjs/Subject"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_6__, __WEBPACK_EXTERNAL_MODULE_8__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -60,6 +60,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	__export(__webpack_require__(1));
 	__export(__webpack_require__(3));
+	__export(__webpack_require__(7));
+	__export(__webpack_require__(9));
+	__export(__webpack_require__(5));
 
 
 /***/ },
@@ -491,6 +494,199 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
 	module.exports = __WEBPACK_EXTERNAL_MODULE_6__;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var Observable_1 = __webpack_require__(6);
+	var Subject_1 = __webpack_require__(8);
+	var rx_app_1 = __webpack_require__(9);
+	/**
+	 * Defines a class that represents a command that can run operations in the background.
+	 */
+	var ReactiveCommand = (function () {
+	    /**
+	     * Creates a new Reactive Command.
+	     * @param canRun An observable that determines whether the given task is allowed to run at a given moment.
+	     * @param task A function that returns an observable that represents the asynchronous operation.
+	     * @param scheduler The scheduler that all of the results should be observed on.
+	     */
+	    function ReactiveCommand(task, canRun, scheduler) {
+	        this.task = task;
+	        this.canRun = canRun;
+	        this.scheduler = scheduler;
+	        if (!task) {
+	            throw new Error("The task parameter must be supplied");
+	        }
+	        if (!canRun) {
+	            throw new Error("The canRun parameter must be supplied");
+	        }
+	        if (!scheduler) {
+	            throw new Error("The scheduler parameter must be supplied");
+	        }
+	        this.subject = new Subject_1.Subject();
+	        this.executing = new Subject_1.Subject();
+	        this._isExecuting = this.executing.startWith(false).distinctUntilChanged();
+	        this._canExecute = this.canRun
+	            .startWith(false)
+	            .combineLatest(this._isExecuting, function (canRun, isExecuting) {
+	            return canRun && !isExecuting;
+	        })
+	            .distinctUntilChanged();
+	        this._results = this.subject.observeOn(scheduler);
+	    }
+	    Object.defineProperty(ReactiveCommand.prototype, "isExecuting", {
+	        /**
+	         * Gets an observable that represents whether the command is currently executing.
+	         */
+	        get: function () {
+	            return this._isExecuting;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(ReactiveCommand.prototype, "canExecute", {
+	        /**
+	         * Gets an observable that represents whether this command can execute.
+	         */
+	        get: function () {
+	            return this._canExecute;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    ReactiveCommand.defaultScheduler = function (scheduler) {
+	        return scheduler || rx_app_1.RxApp.mainThreadScheduler;
+	    };
+	    ReactiveCommand.defaultCanRun = function (canRun) {
+	        return canRun || Observable_1.Observable.of(true);
+	    };
+	    /**
+	     * Creates a new Reactive Command that can run the given synchronous task when executed.
+	     * @param task A function that executes some synchronous task and returns an optional value.
+	     * @param canRun An Observable whose stream of values determine whether the command is allowed to run at a certain time.
+	     * @param scheduler The scheduler that all of the results from the task should be observed on.
+	     */
+	    ReactiveCommand.create = function (task, canRun, scheduler) {
+	        return new ReactiveCommand(function (args) {
+	            var result = task(args);
+	            if (typeof result !== "undefined") {
+	                return Observable_1.Observable.of(result);
+	            }
+	            else {
+	                // TODO: replace with Unit
+	                return Observable_1.Observable.of(null);
+	            }
+	        }, ReactiveCommand.defaultCanRun(canRun), ReactiveCommand.defaultScheduler(scheduler));
+	    };
+	    /**
+	     * Creates a new Reactive Command that can run the given task when executed.
+	     * @param task A function that returns a promise that completes when the task has finished executing.
+	     * @param canRun An Observable whose stream of values determine whether the command is allowed to run at a certain time.
+	     * @param scheduler The scheduler that all of the results from the task should be observed on.
+	     */
+	    ReactiveCommand.createFromTask = function (task, canRun, scheduler) {
+	        return new ReactiveCommand(function (args) { return Observable_1.Observable.fromPromise(task(args)); }, ReactiveCommand.defaultCanRun(canRun), ReactiveCommand.defaultScheduler(scheduler));
+	    };
+	    /**
+	     * Creates a new Reactive Command that can run the given task when executed.
+	     * @param task A function that returns an observable that completes when the task has finished executing.
+	     * @param canRun An Observable whose stream of values determine whether the command is allowed to run at a certain time.
+	     * @param scheduler The scheduler that all of the results from the task should be observed on.
+	     */
+	    ReactiveCommand.createFromObservable = function (task, canRun, scheduler) {
+	        return new ReactiveCommand(task, ReactiveCommand.defaultCanRun(canRun), ReactiveCommand.defaultScheduler(scheduler));
+	    };
+	    /**
+	     * Executes this command asynchronously.
+	     * Note that this method does not check whether the command is currently executable.
+	     * Use ReactiveObject methods such as `invokeCommandWhen()` to take advantage of canExecute.
+	     */
+	    ReactiveCommand.prototype.executeAsync = function (arg) {
+	        var _this = this;
+	        if (arg === void 0) { arg = null; }
+	        this.executing.next(true);
+	        var observable = Observable_1.Observable.create(function (sub) {
+	            try {
+	                var o = _this.task(arg);
+	                var subscription = o.subscribe(sub);
+	                return function () {
+	                    subscription.unsubscribe();
+	                };
+	            }
+	            catch (error) {
+	                sub.error(error);
+	            }
+	        });
+	        observable.subscribe(function (result) {
+	            _this.subject.next(result);
+	        }, function (err) {
+	            _this.subject.error(err);
+	            _this.executing.next(false);
+	        }, function () {
+	            _this.executing.next(false);
+	        });
+	        return observable.observeOn(this.scheduler);
+	    };
+	    Object.defineProperty(ReactiveCommand.prototype, "results", {
+	        /**
+	         * Gets the observable that represents the results of this command's operations.
+	         */
+	        get: function () {
+	            return this._results;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return ReactiveCommand;
+	}());
+	exports.ReactiveCommand = ReactiveCommand;
+
+
+/***/ },
+/* 8 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var Rx_1 = __webpack_require__(2);
+	/**
+	 * Defines a class that contains static properties that are useful for a Reactive Application.
+	 */
+	var RxApp = (function () {
+	    function RxApp() {
+	    }
+	    Object.defineProperty(RxApp, "mainThreadScheduler", {
+	        /**
+	         * Gets a scheduler that can be used to scheduler work on the main UI thread.
+	         */
+	        get: function () {
+	            return Rx_1.Scheduler.queue;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Object.defineProperty(RxApp, "immediateScheduler", {
+	        /**
+	         * Gets a scheduler that executes work as soon as it is scheduled.
+	         */
+	        get: function () {
+	            return Rx_1.Scheduler.asap;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return RxApp;
+	}());
+	exports.RxApp = RxApp;
+
 
 /***/ }
 /******/ ])
