@@ -1,11 +1,11 @@
 {
     "name": "rxui",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "description": "A MVVM framework that integrates Reactive Extensions for JavaScript. Inspired by ReactiveUI for .Net.",
     "scripts": {
         "build:w": "tsc -w",
         "build": "tsc",
-        "build:package": "npm run webpack",
+        "build:package": "npm run build && npm run webpack",
         "webpack": "webpack --display-modules",
         "test": "npm run build && npm run mocha",
         "mocha": "mocha test",
