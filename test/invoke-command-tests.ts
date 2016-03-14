@@ -1,7 +1,6 @@
 import {Observable} from "rxjs/Rx";
 import {ReactiveObject} from "../src/reactive-object";
 import {ReactiveCommand} from "../src/reactive-command";
-import {ReactiveObservable} from "../src/reactive-observable";
 import {PropertyChangedEventArgs} from "../src/events/property-changed-event-args";
 import {expect} from "chai";
 import {invokeCommand} from "../src/operator/invoke-command";

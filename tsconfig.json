@@ -6,7 +6,8 @@
     },
     "exclude": [
         "node_modules",
-        "dist"
+        "examples",
+        "bundles"
     ],
     "compileOnSave": true
 }
