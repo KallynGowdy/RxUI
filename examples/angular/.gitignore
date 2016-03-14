@@ -34,7 +34,4 @@ jspm_packages
 .node_repl_history
 
 # Built Files
-*.js
-*.map.js
-!webpack.config.js
-!bundles/
+dist/
