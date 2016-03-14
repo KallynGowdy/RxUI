@@ -7,6 +7,18 @@
   "installed": {
     "es6-shim/es6-shim.d.ts": {
       "commit": "4fd64879854251c64a085b3f62ab47eaf03d15e8"
+    },
+    "mocha/mocha.d.ts": {
+      "commit": "0cd5f0a1482dc3149f5446b1d885ef6ac7c57720"
+    },
+    "assertion-error/assertion-error.d.ts": {
+      "commit": "0cd5f0a1482dc3149f5446b1d885ef6ac7c57720"
+    },
+    "chai/chai.d.ts": {
+      "commit": "0cd5f0a1482dc3149f5446b1d885ef6ac7c57720"
+    },
+    "sinon/sinon.d.ts": {
+      "commit": "0cd5f0a1482dc3149f5446b1d885ef6ac7c57720"
     }
   }
 }

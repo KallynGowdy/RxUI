@@ -13,6 +13,7 @@ export class TodoViewModel extends ReactiveObject {
     private _loadCommand: ReactiveCommand<Todo[]>;
     private _deleteCommand: ReactiveCommand<boolean>;
     private _toggleTodo: ReactiveCommand<boolean>;
+    private _addCommand: ReactiveCommand<boolean>;
 
     public get todos(): Todo[] {
         return this.get("todos");
@@ -63,6 +64,16 @@ export class TodoViewModel extends ReactiveObject {
             todo.completed = !todo.completed;
             return this._saveCommand.executeAsync();
         });
+        
+        this._addCommand = ReactiveCommand.create((a) => {
+            var todo: Todo = {
+               title: "",
+               completed: false,
+               editing: true
+           };
+           this.editedTodo = todo;
+           return true; 
+        });
     }
     
     public save(): Observable<boolean> {
@@ -75,6 +86,10 @@ export class TodoViewModel extends ReactiveObject {
     
     public loadTodos(): Observable<Todo[]> {
         return this._loadCommand.executeAsync();
+    }
+    
+    public addTodo(): void {
+        this._addCommand.executeAsync();
     }
     
     public toggleTodo(todo: Todo): Observable<boolean> {
