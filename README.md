@@ -82,3 +82,19 @@ class LoginViewModel extends ReactiveObject {
 ### ES5
 
 Comming Soon!
+
+## Examples
+
+Check out the [examples](/examples) folder for a set of demos spanning Angular, Ember, and React, sharing the same core logic between all of them.
+
+## Contributing
+
+If you encounter any issues, [please submit them](https://github.com/KallynGowdy/RxUI/issues). This framework is still very new and very incomplete, so there are bound to be issues :)
+
+Additionally, I've been the only one working on this project, so it can be difficult for me to discover all of the bugs myself.
+
+Finally, if you have suggestions for improvements, I would love to hear them! 
+But I would love to review pull requests for your wonderful ideas even more.
+
+Now, before you go and spend a couple hours on a [Pull Request](https://github.com/KallynGowdy/RxUI/pulls), make sure that you create a new issue and get a greenlight so that your
+time isn't potentially wasted due to it not being the best fit. 
