@@ -7,8 +7,3 @@ webpack.config.js
 
 # VS Code
 .vscode/
-
-# TypeScript Source Files
-# Helps ensure that the project does not cause crazy TypeScript build errors
-# for consumers
-*.ts
