@@ -9,7 +9,7 @@ describe("ReactiveCommand", () => {
             var command: ReactiveCommand<boolean> = ReactiveCommand.createFromTask((a) => {
                 return Promise.resolve(true);
             });
-            
+
             command.executeAsync().take(1).subscribe(result => {
                 expect(result).to.be.true;
                 done();
@@ -17,21 +17,21 @@ describe("ReactiveCommand", () => {
         });
         it("should return a command that resolves with errors from the promise", (done) => {
             var command: ReactiveCommand<void> = ReactiveCommand.createFromTask((a) => {
-               return Promise.reject("Error"); 
+                return Promise.reject("Error");
             });
-            
+
             command.executeAsync().take(1).subscribe(null, err => {
                 expect(err).to.equal("Error");
                 done()
             });
         });
         it("should return a command that resolves with errors from the task execution", (done) => {
-            var error = new Error("Error"); 
+            var error = new Error("Error");
             var task: any = (arg) => {
                 throw error;
-            };            
+            };
             var command: ReactiveCommand<void> = ReactiveCommand.createFromTask<void>(task);
-            
+
             command.executeAsync().take(1).subscribe(null, err => {
                 expect(err).to.equal(error);
                 done();
@@ -39,16 +39,16 @@ describe("ReactiveCommand", () => {
         });
     });
     describe(".create()", () => {
-       it("should return a command that resolves with returned values from the task", (done) => {
-           var command: ReactiveCommand<string> = ReactiveCommand.create((a) => {
-              return "value"; 
-           });
-           
-           command.executeAsync().take(1).subscribe(result => {
-              expect(result).to.equal("value");
-              done(); 
-           }, err => done(err));
-       });
+        it("should return a command that resolves with returned values from the task", (done) => {
+            var command: ReactiveCommand<string> = ReactiveCommand.create((a) => {
+                return "value";
+            });
+
+            command.executeAsync().take(1).subscribe(result => {
+                expect(result).to.equal("value");
+                done();
+            }, err => done(err));
+        });
     });
     describe("#canExecute", () => {
         it("should default to false", (done) => {
@@ -146,11 +146,29 @@ describe("ReactiveCommand", () => {
                 throw error;
             };
             var command: ReactiveCommand<boolean> = ReactiveCommand.createFromObservable<boolean>(task);
-            
+
             command.executeAsync().bufferCount(1).take(1).subscribe(null, err => {
                 expect(err).to.equal(error);
                 done();
             })
-        })
+        });
+        it("should call the task only once for multiple subscribers", (done) => {
+            var num = 0;
+            var command: ReactiveCommand<number> = ReactiveCommand.create(a => {
+                return ++num;
+            });
+
+            command.executeAsync().subscribe(n => {
+                expect(n).to.equal(1);
+                command.executeAsync().subscribe(n => {
+                    try {
+                        expect(n).to.equal(2);
+                        done();
+                    } catch (ex) {
+                        done(ex);
+                    }
+                }, err => done(err));
+            }, err => done(err));
+        });
     });
 });

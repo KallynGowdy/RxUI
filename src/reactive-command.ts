@@ -109,15 +109,19 @@ export class ReactiveCommand<TResult> {
      */
     public executeAsync(arg: any = null): Observable<TResult> {
         this.executing.next(true);
+        var o = null;
         var observable = Observable.create(sub => {
             try {
-                var o = this.task(arg);
+                if(o == null) {
+                    o = this.task(arg);
+                }
                 var subscription = o.subscribe(sub);
                 return () => {
                     subscription.unsubscribe();
                 };
             } catch (error) {
                 sub.error(error);
+                sub.complete();
             }
         });
         observable.subscribe(result => {
