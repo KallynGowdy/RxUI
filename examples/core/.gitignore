@@ -35,4 +35,5 @@ jspm_packages
 
 # Built Files
 *.js
-*.map.js
+*.js.map
+*.d.ts
