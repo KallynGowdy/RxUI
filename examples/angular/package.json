@@ -7,5 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kallyn Gowdy <kallyngowdy@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "angular": "^1.5.0",
+    "rxui-example-core": "^0.5.1"
+  },
+  "devDependencies": {
+    "webpack": "^1.12.14"
+  }
 }
