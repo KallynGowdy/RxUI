@@ -62,7 +62,6 @@ export class TodoViewModel extends ReactiveObject {
         
         this._toggleTodo = ReactiveCommand.createFromObservable((todo: Todo) => {
             todo.completed = !todo.completed;
-            console.log("complete", todo.completed);
             return this._saveCommand.executeAsync();
         });
         
@@ -94,7 +93,6 @@ export class TodoViewModel extends ReactiveObject {
     }
     
     public toggleTodo(todo: Todo): Observable<boolean> {
-        console.log("Toggle")
         return this._toggleTodo.executeAsync(todo);
     }
 }

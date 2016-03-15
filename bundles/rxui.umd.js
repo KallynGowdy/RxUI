@@ -608,9 +608,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var _this = this;
 	        if (arg === void 0) { arg = null; }
 	        this.executing.next(true);
+	        var o = null;
 	        var observable = Observable_1.Observable.create(function (sub) {
 	            try {
-	                var o = _this.task(arg);
+	                if (o == null) {
+	                    o = _this.task(arg);
+	                }
 	                var subscription = o.subscribe(sub);
 	                return function () {
 	                    subscription.unsubscribe();
@@ -618,6 +621,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            catch (error) {
 	                sub.error(error);
+	                sub.complete();
 	            }
 	        });
 	        observable.subscribe(function (result) {
