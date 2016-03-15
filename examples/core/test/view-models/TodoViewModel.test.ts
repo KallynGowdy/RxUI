@@ -96,5 +96,95 @@ export function register() {
                 }, err => done(err));
             });
         });
+
+        describe("#deleteTodo", () => {
+            it("should do nothing if the given TODO does not exist in the view model", (done) => {
+                var missingTodo = {
+                    title: "Missing",
+                    completed: true,
+                    editing: false
+                };
+                var todos: Todo[] = [
+                    {
+                        title: "Todo",
+                        completed: true,
+                        editing: false
+                    },
+                    {
+                        title: "Other",
+                        completed: true,
+                        editing: false
+                    }
+                ];
+                var service = {
+                    putTodos: Sinon.stub().returns(Promise.resolve(false))
+                };
+                var viewModel = new TodoViewModel(<any>service);
+                viewModel.todos = todos;
+
+                viewModel.deleteTodo(missingTodo).take(1).subscribe(deleted => {
+                    expect(deleted).to.be.false;
+                    expect(service.putTodos.called).to.be.false;
+                    done();
+                }, err => done(err));
+            });
+
+            it("should remove the given TODO from the array of TODOS", (done) => {
+                var todos: Todo[] = [
+                    {
+                        title: "Todo",
+                        completed: true,
+                        editing: false
+                    },
+                    {
+                        title: "Other",
+                        completed: true,
+                        editing: false
+                    }
+                ];
+                var service = {
+                    putTodos: Sinon.stub().returns(Promise.resolve(true))
+                };
+                var viewModel = new TodoViewModel(<any>service);
+                viewModel.todos = todos;
+
+                viewModel.deleteTodo(todos[0]).take(1).subscribe(deleted => {
+                    expect(deleted).to.be.true;
+                    expect(todos).to.deep.equal([
+                        {
+                            title: "Other",
+                            completed: true,
+                            editing: false
+                        }
+                    ]);
+                    expect(service.putTodos.called).to.be.true;
+                    done();
+                }, err => done(err));
+            });
+        });
+
+        describe("#save()", () => {
+            it("should call putTodos() on the service with the current array of TODOs", (done) => {
+                var todos: Todo[] = [
+                    {
+                        title: "Todo",
+                        completed: true,
+                        editing: false
+                    }
+                ];
+                var service = {
+                    putTodos: Sinon.stub().returns(Promise.resolve(true))
+                };
+                var viewModel = new TodoViewModel(<any>service);
+                viewModel.todos = todos;
+
+                viewModel.save().take(1).subscribe(saved => {
+                    expect(saved).to.equal(true);
+                    expect(service.putTodos.called).to.be.true;
+                    expect(service.putTodos.firstCall.calledWithExactly(todos)).to.be.true;
+                    done();
+                }, err => done(err));
+            });
+        });
     });
 }
