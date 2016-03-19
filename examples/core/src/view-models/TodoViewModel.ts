@@ -87,6 +87,7 @@ export class TodoViewModel extends ReactiveObject {
         });
 
         this._addCommand = ReactiveCommand.createFromObservable((a) => {
+            console.log("Execute");
             this.todos.push(this.newTodo);
             return this.save();
         }, this.canAddNewTodo());

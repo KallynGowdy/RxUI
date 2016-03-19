@@ -2,12 +2,12 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "declaration": true
+        "declaration": true,
+        "sourceMap": true
     },
     "exclude": [
         "node_modules",
         "examples",
         "bundles"
-    ],
-    "compileOnSave": true
+    ]
 }

@@ -1,75 +1,11 @@
 /// <reference path="../references.d.ts" />
 import {Observable} from "rxjs/Rx";
 import {ReactiveObject} from "../src/reactive-object";
+import {ReactiveCommand} from "../src/reactive-command";
 import {PropertyChangedEventArgs} from "../src/events/property-changed-event-args";
 import {expect} from "chai";
-
-class MyObject extends ReactiveObject {
-    public get child(): MyOtherObject {
-        return this.get("child");
-    }
-    public set child(val: MyOtherObject) {
-        this.set("child", val);
-    }
-
-    public get otherProp(): string {
-        return this.get("otherProp");
-    }
-    public set otherProp(val: string) {
-        this.set("otherProp", val);
-    }
-
-    public get prop1(): string {
-        return this.get("prop1");
-    }
-    public set prop1(val: string) {
-        this.set("prop1", val);
-    }
-
-    public get prop2(): string {
-        return this.get("prop2");
-    }
-    public set prop2(val: string) {
-        this.set("prop2", val);
-    }
-
-    public get prop3(): string {
-        return this.get("prop3");
-    }
-    public set prop3(val: string) {
-        this.set("prop3", val);
-    }
-
-    constructor() {
-        super();
-        this.otherProp = null;
-        this.prop1 = null;
-        this.prop2 = null;
-        this.prop3 = null;
-    }
-}
-
-class MyOtherObject extends ReactiveObject {
-    public get prop(): string {
-        return this.get("prop");
-    }
-    public set prop(val: string) {
-        this.set("prop", val);
-    }
-
-    public get child(): MyOtherObject {
-        return this.get("child");
-    }
-    public set child(val: MyOtherObject) {
-        this.set("child", val);
-    }
-
-    constructor() {
-        super();
-        this.set("prop", null);
-    }
-}
-
+import {MyObject} from "./models/my-object";
+import {MyOtherObject} from "./models/my-other-object";
 
 describe("ReactiveObject", () => {
     describe("#set()", () => {
@@ -440,6 +376,36 @@ describe("ReactiveObject", () => {
             obj.prop1 = "newProp1Value";
             obj.prop2 = "newProp2Value";
             obj.prop3 = "newProp3Value";
+        });
+        
+        it("should handle recursive calls to #whenAny(lambda) via properties", () => {
+            class C extends ReactiveObject {
+                prop: string;
+                other: string;
+                
+                get observable(): Observable<boolean> {
+                    return this.whenAnyValue(vm => vm.prop).map(p => p === "value");
+                }
+                
+                get otherObservable(): Observable<boolean> {
+                    return this.whenAnyValue(vm => vm.other).map(p => p === "other");
+                }
+                
+                constructor() {
+                    super();
+                    // Triggers a call to observable(),
+                    // which in turn triggers whenAnyValue(),
+                    // which in turn tries to build a ghost object for this one,
+                    // which in turn triggers otherObservable()
+                    // which in turn triggers whenAnyValue(),
+                    // which repeats the process.
+                    var command = ReactiveCommand.create(() => {
+                        return true;
+                    }, this.observable);
+                }
+            }
+            
+            new C();            
         });
     });
 

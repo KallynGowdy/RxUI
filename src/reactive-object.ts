@@ -2,6 +2,7 @@ import {Observable, Subject, Subscription} from "rxjs/Rx";
 import {PropertyChangedEventArgs} from "./events/property-changed-event-args";
 import {invokeCommand} from "./operator/invoke-command";
 import {ReactiveCommand} from "./reactive-command";
+import {ReactivePropertyInfo} from "./reactive-property-info";
 
 /**
  * Defines a class that represents a reactive object.
@@ -75,59 +76,32 @@ export class ReactiveObject {
     }
 
     private buildGhostObject(arr: string[], obj: any): any {
-        var vm: any = {};
-        var queue = [{ node: obj, ghost: vm }];
-
-        function declareProperty(currentGhost, ghost, propertyName) {
-            Object.defineProperty(currentGhost, propertyName, {
-                get: () => {
-                    arr.push(propertyName);
-                    return ghost;
-                }
-            });
-        }
-
-        while (queue.length > 0) {
-            var current = queue.shift();
-            for (var prop in current.node) {
+        if (!obj || typeof obj !== "object" || obj.__data === null) {
+            return null;
+        } else {
+            var vm: any = {};
+            var builder = this;
+            function declareProperty(currentGhost, propertyName) {
+                Object.defineProperty(currentGhost, propertyName, {
+                    get: () => {
+                        arr.push(propertyName);
+                        return builder.buildGhostObject(arr, obj.__data[propertyName]);
+                    }
+                });
+            }
+            for (var prop in obj.__data) {
                 // underscored properties should be ignored, because they are private
                 if (prop.indexOf("_") !== 0) {
-                    var val = current.node[prop];
+                    var val = obj.__data[prop];
                     var type = typeof val;
                     var ghost = {};
-                    if (type !== "function" && type !== "undefined" && !current.ghost.hasOwnProperty(prop)) {
-                        declareProperty(current.ghost, ghost, prop);
-                        if (type === "object" && val && !val.____ghosted) {
-                            val.____ghosted = true;
-                            queue.push({
-                                node: val,
-                                ghost: ghost
-                            });
-                        }
+                    if (type !== "function" && type !== "undefined") {
+                        declareProperty(vm, prop);
                     }
                 }
             }
+            return vm;
         }
-        
-        // Remove the ____ghosted properties from visited properties
-        queue.push({ node: obj, ghost: null });
-        while (queue.length > 0) {
-            var current = queue.shift();
-            for (var prop in current.node) {
-                if (prop.indexOf("_") !== 0) {
-                    var val = current.node[prop];
-                    var type = typeof val;
-                    if (type === "object" && val && val.____ghosted) {
-                        delete val.____ghosted;
-                        queue.push({
-                            node: val,
-                            ghost: null
-                        });
-                    }
-                }
-            }
-        }
-        return vm;
     }
 
     /**

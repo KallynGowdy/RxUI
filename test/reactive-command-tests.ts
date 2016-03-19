@@ -2,6 +2,8 @@ import {ReactiveCommand} from "../src/reactive-command";
 import {TestScheduler} from "rxjs/testing/TestScheduler";
 import {Observable} from "rxjs/Rx";
 import {expect} from "chai";
+import {MyObject} from "./models/my-object";
+import {MyOtherObject} from "./models/my-other-object";
 
 describe("ReactiveCommand", () => {
     describe(".createFromTask()", () => {
@@ -171,4 +173,28 @@ describe("ReactiveCommand", () => {
             }, err => done(err));
         });
     });
+
+    it("should not hang when using canRun and an observable built from whenAnyValue", (done) => {
+        var obj: MyObject = new MyObject();
+        var run = false;
+        var command = ReactiveCommand.create(() => {
+            return true;
+        }, obj.canAddNewTodo());
+
+        command.executeAsync().subscribe(result => {
+            expect(result).to.be.true;
+            done();
+        }, err => done(err));
+    });
+
+    // it("Be able to instantiate TodoViewModel", (done) => {
+    //     var todos: Todo[] = [
+    //         new Todo("Todo", false)
+    //     ];
+    //     var store: any = {
+    //         getTodos: () => Promise.resolve(todos),
+    //         putTodos: null
+    //     };
+    //     var obj: TodoViewModel = new TodoViewModel(store);
+    // });
 });
