@@ -63,7 +63,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	__export(__webpack_require__(7));
 	__export(__webpack_require__(9));
 	__export(__webpack_require__(5));
-
+	//# sourceMappingURL=main.js.map
 
 /***/ },
 /* 1 */
@@ -134,56 +134,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return path.join(".");
 	    };
 	    ReactiveObject.prototype.buildGhostObject = function (arr, obj) {
-	        var vm = {};
-	        var queue = [{ node: obj, ghost: vm }];
-	        function declareProperty(currentGhost, ghost, propertyName) {
-	            Object.defineProperty(currentGhost, propertyName, {
-	                get: function () {
-	                    arr.push(propertyName);
-	                    return ghost;
-	                }
-	            });
+	        if (!obj || typeof obj !== "object" || obj.__data === null) {
+	            return null;
 	        }
-	        while (queue.length > 0) {
-	            var current = queue.shift();
-	            for (var prop in current.node) {
+	        else {
+	            var vm = {};
+	            var builder = this;
+	            function declareProperty(currentGhost, propertyName) {
+	                Object.defineProperty(currentGhost, propertyName, {
+	                    get: function () {
+	                        arr.push(propertyName);
+	                        return builder.buildGhostObject(arr, obj.__data[propertyName]);
+	                    }
+	                });
+	            }
+	            for (var prop in obj.__data) {
 	                // underscored properties should be ignored, because they are private
 	                if (prop.indexOf("_") !== 0) {
-	                    var val = current.node[prop];
+	                    var val = obj.__data[prop];
 	                    var type = typeof val;
 	                    var ghost = {};
-	                    if (type !== "function" && type !== "undefined" && !current.ghost.hasOwnProperty(prop)) {
-	                        declareProperty(current.ghost, ghost, prop);
-	                        if (type === "object" && val && !val.____ghosted) {
-	                            val.____ghosted = true;
-	                            queue.push({
-	                                node: val,
-	                                ghost: ghost
-	                            });
-	                        }
+	                    if (type !== "function" && type !== "undefined") {
+	                        declareProperty(vm, prop);
 	                    }
 	                }
 	            }
+	            return vm;
 	        }
-	        // Remove the ____ghosted properties from visited properties
-	        queue.push({ node: obj, ghost: null });
-	        while (queue.length > 0) {
-	            var current = queue.shift();
-	            for (var prop in current.node) {
-	                if (prop.indexOf("_") !== 0) {
-	                    var val = current.node[prop];
-	                    var type = typeof val;
-	                    if (type === "object" && val && val.____ghosted) {
-	                        delete val.____ghosted;
-	                        queue.push({
-	                            node: val,
-	                            ghost: null
-	                        });
-	                    }
-	                }
-	            }
-	        }
-	        return vm;
 	    };
 	    /**
 	     * Gets an observable that resolves with the related property changed event whenever the given property updates.
@@ -353,7 +330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return ReactiveObject;
 	}());
 	exports.ReactiveObject = ReactiveObject;
-
+	//# sourceMappingURL=reactive-object.js.map
 
 /***/ },
 /* 2 */
@@ -411,7 +388,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return PropertyChangedEventArgs;
 	}(event_args_1.EventArgs));
 	exports.PropertyChangedEventArgs = PropertyChangedEventArgs;
-
+	//# sourceMappingURL=property-changed-event-args.js.map
 
 /***/ },
 /* 4 */
@@ -442,7 +419,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return EventArgs;
 	}());
 	exports.EventArgs = EventArgs;
-
+	//# sourceMappingURL=event-args.js.map
 
 /***/ },
 /* 5 */
@@ -487,7 +464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return results;
 	}
 	exports.invokeCommand = invokeCommand;
-
+	//# sourceMappingURL=invoke-command.js.map
 
 /***/ },
 /* 6 */
@@ -647,7 +624,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return ReactiveCommand;
 	}());
 	exports.ReactiveCommand = ReactiveCommand;
-
+	//# sourceMappingURL=reactive-command.js.map
 
 /***/ },
 /* 8 */
@@ -690,7 +667,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return RxApp;
 	}());
 	exports.RxApp = RxApp;
-
+	//# sourceMappingURL=rx-app.js.map
 
 /***/ }
 /******/ ])
