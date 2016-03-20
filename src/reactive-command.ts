@@ -1,6 +1,7 @@
 import {Observable} from "rxjs/Observable";
 import {Subject} from "rxjs/Subject";
 import {Scheduler} from "rxjs/Scheduler";
+import {Subscription} from "rxjs/Subscription";
 import {RxApp} from "./rx-app";
 
 /**
@@ -13,6 +14,7 @@ export class ReactiveCommand<TResult> {
     private _results: Observable<TResult>;
     private _canExecute: Observable<boolean>;
     private _isExecuting: Observable<boolean>;
+    private _canExecuteSubscription: Subscription;
 
     /**
      * Gets an observable that represents whether the command is currently executing.
@@ -46,14 +48,26 @@ export class ReactiveCommand<TResult> {
         }
         this.subject = new Subject<TResult>();
         this.executing = new Subject<boolean>();
-        this._isExecuting = this.executing.startWith(false).distinctUntilChanged();
+        
+        // Implementation mostly taken from:
+        // https://github.com/reactiveui/ReactiveUI/blob/rxui7-master/ReactiveUI/ReactiveCommand.cs#L628
+        this._isExecuting = this.executing
+            .startWith(false)
+            .distinctUntilChanged()
+            .publishReplay(1)
+            .refCount();
         this._canExecute = this.canRun
             .startWith(false)
             .combineLatest(this._isExecuting, (canRun, isExecuting) => {
                 return canRun && !isExecuting;
             })
-            .distinctUntilChanged();
+            .distinctUntilChanged()
+            .publishReplay(1)
+            .refCount();
         this._results = this.subject.observeOn(scheduler);
+        
+        // Make sure that can execute is triggered to be a hot observable.
+        this._canExecuteSubscription = this._canExecute.subscribe();
     }
 
     private static defaultScheduler(scheduler: Scheduler): Scheduler {
@@ -133,6 +147,13 @@ export class ReactiveCommand<TResult> {
             this.executing.next(false);
         });
         return observable.observeOn(this.scheduler);
+    }
+
+    /**
+     * Gets an observable that determines whether the command is able to execute at the moment it is subscribed to.
+     */
+    public canExecuteNow(): Observable<boolean> {
+        return this.canExecute.first();
     }
 
     /**

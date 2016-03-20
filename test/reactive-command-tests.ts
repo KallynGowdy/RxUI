@@ -1,6 +1,6 @@
 import {ReactiveCommand} from "../src/reactive-command";
 import {TestScheduler} from "rxjs/testing/TestScheduler";
-import {Observable} from "rxjs/Rx";
+import {Observable, Subject} from "rxjs/Rx";
 import {expect} from "chai";
 import {MyObject} from "./models/my-object";
 import {MyOtherObject} from "./models/my-other-object";
@@ -172,6 +172,40 @@ describe("ReactiveCommand", () => {
                 }, err => done(err));
             }, err => done(err));
         });
+    });
+    
+    describe("#canExecuteNow()", () => {
+        it("should resolve with the latest value seen by canExecute", (done) => {
+            var canExecute = new Subject<boolean>();
+            var command: ReactiveCommand<number> = ReactiveCommand.create(a => {
+                return 42;
+            }, canExecute);
+            
+            command.canExecuteNow().subscribe(can => {
+               expect(can).to.be.false;
+                canExecute.next(true);
+                
+                // Test multiple successive calls resolve with the repeated value 
+                command.canExecuteNow().combineLatest(command.canExecuteNow(), (first, second) => [first, second]).subscribe(c => {
+                    expect(c[0]).to.be.true;
+                    expect(c[1]).to.be.true;
+                    done();
+                }, err => done(err));
+            }, err => done(err));
+        });
+        it("should resolve with a single value and complete", (done) => {
+            var observedValue: boolean = false;
+            var command: ReactiveCommand<number> = ReactiveCommand.create(a => {
+                return 42;
+            }, Observable.of(false));
+            
+            command.canExecuteNow().subscribe(can => {
+               observedValue = can;
+            }, err => done(err), () => {
+                expect(observedValue).to.be.false;
+                done();
+            });
+        });        
     });
 
     it("should not hang when using canRun and an observable built from whenAnyValue", (done) => {
