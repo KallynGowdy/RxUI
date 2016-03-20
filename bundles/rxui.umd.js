@@ -505,14 +505,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 	        this.subject = new Subject_1.Subject();
 	        this.executing = new Subject_1.Subject();
-	        this._isExecuting = this.executing.startWith(false).distinctUntilChanged();
+	        // Implementation mostly taken from:
+	        // https://github.com/reactiveui/ReactiveUI/blob/rxui7-master/ReactiveUI/ReactiveCommand.cs#L628
+	        this._isExecuting = this.executing
+	            .startWith(false)
+	            .distinctUntilChanged()
+	            .publishReplay(1)
+	            .refCount();
 	        this._canExecute = this.canRun
 	            .startWith(false)
 	            .combineLatest(this._isExecuting, function (canRun, isExecuting) {
 	            return canRun && !isExecuting;
 	        })
-	            .distinctUntilChanged();
+	            .distinctUntilChanged()
+	            .publishReplay(1)
+	            .refCount();
 	        this._results = this.subject.observeOn(scheduler);
+	        // Make sure that can execute is triggered to be a hot observable.
+	        this._canExecuteSubscription = this._canExecute.subscribe();
 	    }
 	    Object.defineProperty(ReactiveCommand.prototype, "isExecuting", {
 	        /**
@@ -610,6 +620,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	            _this.executing.next(false);
 	        });
 	        return observable.observeOn(this.scheduler);
+	    };
+	    /**
+	     * Gets an observable that determines whether the command is able to execute at the moment it is subscribed to.
+	     */
+	    ReactiveCommand.prototype.canExecuteNow = function () {
+	        return this.canExecute.first();
 	    };
 	    Object.defineProperty(ReactiveCommand.prototype, "results", {
 	        /**
