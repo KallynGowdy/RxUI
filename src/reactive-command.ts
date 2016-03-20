@@ -119,7 +119,6 @@ export class ReactiveCommand<TResult> {
     /**
      * Executes this command asynchronously.
      * Note that this method does not check whether the command is currently executable.
-     * Use ReactiveObject methods such as `invokeCommandWhen()` to take advantage of canExecute. 
      */
     public executeAsync(arg: any = null): Observable<TResult> {
         this.executing.next(true);
@@ -147,6 +146,15 @@ export class ReactiveCommand<TResult> {
             this.executing.next(false);
         });
         return observable.observeOn(this.scheduler);
+    }
+    
+    /**
+     * Executes this command asynchronously if the latest observed value from canExecute is true.
+     */
+    public invokeAsync(arg: any = null): Observable<TResult> {
+        return this.canExecuteNow().filter(canExecute => canExecute).flatMap(c => {
+            return this.executeAsync(arg);
+        });
     }
 
     /**

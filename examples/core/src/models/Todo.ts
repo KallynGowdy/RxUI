@@ -56,4 +56,11 @@ export class Todo extends ReactiveObject {
     public set completed(completed: boolean) {
         this.set("completed", completed);
     }
+    
+    /**
+     * Clones this TODO and returns the copy.
+     */
+    public copy(): Todo {
+        return new Todo(this.title, this.completed);
+    }
 }

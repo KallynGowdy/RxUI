@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "angular": "^1.5.0",
-    "rxui-example-core": "^0.5.1"
+    "rxui-example-core": "^0.6.0"
   },
   "devDependencies": {
     "webpack": "^1.12.14"

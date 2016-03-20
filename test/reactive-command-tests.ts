@@ -174,6 +174,33 @@ describe("ReactiveCommand", () => {
         });
     });
     
+    describe("#invokeAsync()", () => {
+        it("should not run the command when canExecute is false", (done) => {
+            var command: ReactiveCommand<number> = ReactiveCommand.create(a => {
+                return 42;
+            }, Observable.of(false));
+            var hit: boolean = false;
+            command.invokeAsync().subscribe(num => {
+                hit = true;
+            }, err => done(err), () => {
+                expect(hit).to.be.false;
+                done();
+            });
+        });
+        it("should run the command when canExecute is true", (done) => {
+            var command: ReactiveCommand<number> = ReactiveCommand.create(a => {
+                return 42;
+            }, Observable.of(true));
+            var hit: boolean = false;
+            command.invokeAsync().subscribe(num => {
+                hit = true;
+            }, err => done(err), () => {
+                expect(hit).to.be.true;
+                done();
+            });
+        });
+    });
+    
     describe("#canExecuteNow()", () => {
         it("should resolve with the latest value seen by canExecute", (done) => {
             var canExecute = new Subject<boolean>();
