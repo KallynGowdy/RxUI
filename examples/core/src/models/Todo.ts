@@ -23,7 +23,7 @@ export class Todo extends ReactiveObject {
         return null;
     }
     
-    constructor(title?: string, completed?: boolean) {
+    constructor(title: string = null, completed: boolean = null) {
         super();
         this.title = title;
         this.completed = completed;

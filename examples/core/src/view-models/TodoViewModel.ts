@@ -15,42 +15,63 @@ export class TodoViewModel extends ReactiveObject {
     private _toggleTodo: ReactiveCommand<boolean>;
     private _addCommand: ReactiveCommand<boolean>;
 
+    /**
+     * Gets the array of TODOs that are being presented by this view model.
+     */
     public get todos(): Todo[] {
         return this.get("todos");
     }
+    
+    /**
+     * Sets the array of TODOs that are being presented by this view model.
+     */
     public set todos(todos: Todo[]) {
         this.set("todos", todos);
     }
 
+    /**
+     * Gets the TODO that is currently being edited.
+     */
     public get editedTodo(): Todo {
         return this.get("editedTodo");
     }
+    
+    /**
+     * Sets the TODO that is currently being edited.
+     */
     public set editedTodo(todo: Todo) {
         this.set("editedTodo", todo);
     }
 
+    /**
+     * Gets the TODO that is being created.
+     */
     public get newTodo(): Todo {
-        return this.get("newTodo") || new Todo();
+        var todo = this.get("newTodo");
+        if(!todo) {
+            todo = new Todo();
+            this.newTodo = todo;
+        }
+        return todo;
     }
+    
+    /**
+     * Sets the TODO that is being created.
+     */
     public set newTodo(todo: Todo) {
         this.set("newTodo", todo);
     }
 
-    public get isEditing(): Observable<boolean> {
+    /**
+     * Gets an observable that resolves with whenever a TODO is being edited.
+     */
+    public isEditingAsync(): Observable<boolean> {
         return this.whenAnyValue(vm => vm.editedTodo).map(todo => todo != null);
     }
-
-    public canAddNewTodo(): Observable<boolean> {
-        console.log("can Add");
-        // TODO: Work on Why The Constructor is blocking right here: 
-        return this.whenAnyValue(vm => {
-            console.log("test");
-            return vm.newTodo;   
-        }).map(todo => {
-            console.log("Map");
-            todo.title = todo.title.trim();
-            return !!todo.title;
-        }).startWith(false);
+    
+    private isValidTitle(title: string): boolean {
+        var valid = !!title.trim();
+        return valid;
     }
 
     constructor(todoStore: TodoStorage) {
@@ -86,11 +107,16 @@ export class TodoViewModel extends ReactiveObject {
             return this._saveCommand.executeAsync();
         });
 
+        var canAddTodo = this.whenAnyValue(vm => {
+            return vm.newTodo.title;   
+        }).map(title => {
+            return this.isValidTitle(title)
+        });
+
         this._addCommand = ReactiveCommand.createFromObservable((a) => {
-            console.log("Execute");
             this.todos.push(this.newTodo);
             return this.save();
-        }, this.canAddNewTodo());
+        }, canAddTodo);
     }
 
     public resetNewTodo(): Todo {
@@ -110,7 +136,7 @@ export class TodoViewModel extends ReactiveObject {
     }
 
     public addTodo(): Observable<boolean> {
-        return this._addCommand.canExecute.first().filter(canExecute => canExecute).flatMap(canExecute => {
+        return this._addCommand.canExecuteNow().filter(canExecute => canExecute).flatMap(canExecute => {
             return this._addCommand.executeAsync();
         });
     }

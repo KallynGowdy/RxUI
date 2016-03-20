@@ -20,7 +20,7 @@
     "webpack": "^1.12.14"
   },
   "dependencies": {
-    "rxui": "^0.3.4"
+    "rxui": "^0.3.5"
   },
   "homepage": "https://github.com/KallynGowdy/RxUI/tree/create-examples/examples"
 }
