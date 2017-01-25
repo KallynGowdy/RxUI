@@ -524,7 +524,7 @@ export class ReactiveObject {
         }
         iterateProperties(map ? args.slice(0, args.length - 1) : args);
         var observableList = finalProperties.map(prop => {
-            return this.whenSingle(prop, true);
+            return this.whenSingle(prop, true).distinctUntilChanged((x, y) => x.newPropertyValue === y.newPropertyValue);
         }).filter(o => o != null);
         if (map) {
             return Observable.combineLatest<TResult>(...observableList, map);
